@@ -40,10 +40,12 @@ void ObjectDetection(Mat& frame, bool compute)
     }
 
     vector<Point> largestContour = contours[largestContourIdx];
+    box = minAreaRect(largestContour);
     if (compute)
     {
 		ComputeObjectCenterAndAngle(largestContour);
     }
+
 
     // Vẽ kết quả
     Mat image = frame.clone();
@@ -64,15 +66,13 @@ void ComputeObjectCenterAndAngle(vector<Point> largestContour)
     int cx = int(M.m10 / M.m00);
     int cy = int(M.m01 / M.m00);
 
-    // Tính góc bằng bounding box xoay
-    box = cv::minAreaRect(largestContour);
+    
     float angle = box.angle;
     std::cout << "Tam vat: (" << cx << ", " << cy << ")" << std::endl;
     std::cout << "Goc xoay: " << angle << " do" << std::endl;
 
 }
 
-// Hiển thị ảnh
 float ObjectLength(Mat& frame)
 {
 	float length = max(box.size.width, box.size.height);
