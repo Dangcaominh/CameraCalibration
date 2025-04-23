@@ -6,6 +6,8 @@
 using namespace std;
 using namespace cv;
 
+
+
 RotatedRect box;
 
 void ObjectDetection(Mat& frame, bool compute)
@@ -49,14 +51,14 @@ void ObjectDetection(Mat& frame, bool compute)
 
     // Vẽ kết quả
     Mat image = frame.clone();
-    cv::Point2f rect_points[4];
+    Point2f rect_points[4];
     box.points(rect_points);
     for (int i = 0; i < 4; i++) 
     {
-        cv::line(image, rect_points[i], rect_points[(i + 1) % 4], cv::Scalar(0, 255, 0), 2);
+        line(image, rect_points[i], rect_points[(i + 1) % 4], Scalar(0, 255, 0), 2);
     }
 
-    cv::imshow("Object Detection", image);
+    imshow("Object Detection", image);
 }
 
 void ComputeObjectCenterAndAngle(vector<Point> largestContour)
@@ -68,12 +70,12 @@ void ComputeObjectCenterAndAngle(vector<Point> largestContour)
 
     
     float angle = box.angle;
-    std::cout << "Tam vat: (" << cx << ", " << cy << ")" << std::endl;
-    std::cout << "Goc xoay: " << angle << " do" << std::endl;
+    cout << "Tam vat: (" << cx << ", " << cy << ")" << std::endl;
+    cout << "Goc xoay: " << angle << " do" << std::endl;
 
 }
 
-float ObjectLength(Mat& frame)
+float ObjectLength()
 {
 	float length = max(box.size.width, box.size.height);
 	return length;
