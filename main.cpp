@@ -51,7 +51,7 @@ void streamMJPEG(const string& url) {
 
 Mat frame;
 
-int stage = 1;
+int stage = 5;
 inline void processStreamingFrame()
 {
 	imshow("ESP32-CAM Stream", frame);
@@ -83,6 +83,7 @@ inline void processStreamingFrame()
 			if (ChessBoardCalibration(frame))
 			{
 				stage++;
+				destroyWindow("Chessboard Calibration");
 				cout << "Press Enter to Calculate Object Length or ESC to exit.\n";
 				return;
 			}
@@ -98,13 +99,20 @@ inline void processStreamingFrame()
 			return;
 		}
 	}
-	else
+	else if(stage == 5)
 	{
 		if (key == 13)
 		{
-			DirectCameraCalibration(frame);
-			stopStreaming = true;
+			if (DirectCameraCalibration(frame))
+			{
+				stage++;
+				stopStreaming = true;
+			}
 		}
+	}
+	else
+	{
+		exit(0);
 	}
 	if (key == 27) { // ESC
 		stopStreaming = true;

@@ -18,6 +18,8 @@ vector<vector<Point3f>> objpoints;
 // Creating vector to store vectors of 2D points for each checkerboard image
 vector<vector<Point2f>> imgpoints;
 
+Mat intrinsicMatrix, rotationMatrix, translationVector;
+
 
 bool ChessBoardCalibration(Mat& frame)
 {
@@ -54,16 +56,16 @@ bool ChessBoardCalibration(Mat& frame)
 
         objpoints.push_back(objp);
         imgpoints.push_back(corner_pts);
-        imshow("Image", frame_copy);
+        imshow("Chessboard Calibration", frame_copy);
 
         if (!filesystem::exists("ChessboardCalibration"))
         {
             filesystem::create_directory("ChessboardCalibration");
         }
 
-        string name = "ChessboardCalibration/image " + to_string(objpointsDirect.size()) + ".jpg";
+        string name = "ChessboardCalibration/image " + to_string(objpoints.size()) + ".jpg";
         imwrite(name, frame);
-		cout << "Da luu hinh thu " << to_string(objpointsDirect.size()) << "\n";
+		cout << "Da luu hinh thu " << to_string(objpoints.size()) << "\n";
     }   
     else
     {
@@ -79,6 +81,7 @@ bool ChessBoardCalibration(Mat& frame)
 
         ofstream logfile("ChessBoardCalibration.txt", ios::out);  // Mở file ở chế độ overwrite
         logfile << "cameraMatrix : " << cameraMatrix << "\n";
+		intrinsicMatrix = cameraMatrix.clone();
         logfile << "distCoeffs : " << distCoeffs << "\n";
         for (size_t i = 0; i < rvecs.size(); ++i) {
             logfile << "Image " << i + 1 << "\n";
@@ -91,6 +94,10 @@ bool ChessBoardCalibration(Mat& frame)
             logfile << "Translation Vector:\n" << tvecs[i] << "\n";
 			logfile << "------------------------\n";
         }
+        Mat R;
+		Rodrigues(rvecs[0], R);
+		rotationMatrix = R.clone();
+		translationVector = tvecs[0].clone();
 		logfile.close();
 		cout << "Da luu ket qua vao file ChessBoardCalibration.txt\n";
         return 1;
@@ -226,6 +233,7 @@ bool DirectCameraCalibration(Mat& frame)
 
         string name = "DirectCalibration/image " + to_string(objpointsDirect.size()) + ".jpg";
         imwrite(name, frame);
+        cout << "Da luu hinh thu " << to_string(objpointsDirect.size()) << "\n";
     }
     else
     {

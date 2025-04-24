@@ -1,4 +1,5 @@
 ﻿#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp> 
 #include "object_utils.h"
 #include <string>
 #include <iostream>
@@ -46,6 +47,7 @@ void ObjectDetection(Mat& frame, bool compute)
     if (compute)
     {
 		ComputeObjectCenterAndAngle(largestContour);
+		imwrite("ObjectDetection.jpg", frame);
     }
 
 
@@ -75,8 +77,50 @@ void ComputeObjectCenterAndAngle(vector<Point> largestContour)
 
 }
 
+extern Mat intrinsicMatrix, rotationMatrix, translationVector;
+
 float ObjectLength()
 {
-	float length = max(box.size.width, box.size.height);
-	return length;
+   Point2f rect_points[4];
+   box.points(rect_points); // Lấy 4 góc của RotatedRect
+   cout << "4 goc: " << rect_points[0] << " " << rect_points[1] << " " << rect_points[2] << " " << rect_points[3] << "\n";
+   Mat P = Mat::zeros(3, 4, CV_64F);
+   for (int i = 0; i < 3; i++)
+   {
+	   for (int j = 0; j < 3; j++)
+	   {
+		   P.at<double>(i, j) = rotationMatrix.at<double>(i, j);
+	   }
+   }
+   P.at<double>(0, 3) = translationVector.at<double>(0, 0);
+   P.at<double>(1, 3) = translationVector.at<double>(1, 0);
+   P.at<double>(2, 3) = translationVector.at<double>(2, 0);
+
+   P = intrinsicMatrix * P; // Tính ma trận nội suy
+
+   Mat transformedP = Mat::zeros(3, 3, CV_64F);
+   for (int i = 0; i < 3; i++)
+   {
+	   transformedP.at<double>(i, 0) = P.at<double>(i, 0);
+	   transformedP.at<double>(i, 1) = P.at<double>(i, 1);
+	   transformedP.at<double>(i, 2) = P.at<double>(i, 3);
+   }
+
+
+   // Chuyển đổi rect_points sang tọa độ thực tế
+   vector<Point3f> realPoints(4);
+   for (int i = 0; i < 4; i++)
+   {
+       Mat point2D = (Mat_<double>(3, 1) << rect_points[i].x, rect_points[i].y, 1);
+       Mat transformedPoint = transformedP.inv() * point2D;
+	   realPoints[i] = Point3f(transformedPoint.at<double>(0, 0) / transformedPoint.at<double>(2, 0), transformedPoint.at<double>(1, 0) / transformedPoint.at<double>(2, 0), 0);
+   }
+   // Tính khoảng cách giữa hai điểm đối diện để xác định chiều dài  
+   
+    // Tính khoảng cách giữa hai điểm đối diện để xác định chiều dài  
+    float length1 = sqrt(pow(realPoints[0].x - realPoints[1].x, 2) + pow(realPoints[0].y - realPoints[1].y, 2));  
+    float length2 = sqrt(pow(realPoints[1].x - realPoints[2].x, 2) + pow(realPoints[1].y - realPoints[2].y, 2));
+   // Chiều dài thực tế là giá trị lớn hơn giữa hai chiều  
+
+   return max(length1, length2);
 }
