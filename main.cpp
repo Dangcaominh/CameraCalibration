@@ -51,7 +51,7 @@ void streamMJPEG(const string& url) {
 
 Mat frame;
 
-int stage = 5;
+int stage = 1;
 inline void processStreamingFrame()
 {
 	imshow("ESP32-CAM Stream", frame);
